@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital101 Operations Tracker | 8-Week / 320h Roadmap</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .completed-sticky {
+            border-left: 6px solid #10b981 !important;
+            background: linear-gradient(to right, #f0fdf4, #ffffff) !important;
+            box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.1);
+        }
+
+        .notification-timer {
+            animation: shrinkWidth 3.5s linear forwards;
+        }
+        @keyframes shrinkWidth {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        
+        /* Mobile Overlay Background */
+        .drawer-overlay {
+            background-color: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 overflow-x-hidden font-medium">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- DATA CONSTANTS (320H TOTAL OVER 8 WEEKS - 2 TASKS PER WEEK) ---
+        const INITIAL_TASKS = [
+            { 
+                id: 1, week: 1, title: "Director Vision & Mission Alignment", hours: 12, deliverable: "Unified Company Charter", status: 'pending',
+                details: "Sync high-level objectives with Director based on 'The 101 Way'.",
+                steps: ["Review management pain points", "Define 320h sprint milestones", "Draft Phase 1 Roadmap"],
+                metrics: ["100% Executive Alignment", "Approved Strategic Charter"]
+            },
+            { 
+                id: 2, week: 1, title: "Team Skill Identification (10 Juniors)", hours: 24, deliverable: "Skill Matrix Report", status: 'pending',
+                details: "Deep-dive competence audit of 10 juniors to map core pod placements.",
+                steps: ["1-on-1 Interviews", "Skill-gap analysis", "Group juniors into 5 pods"],
+                metrics: ["Verified Skill Matrix", "Pod Lead Identification"]
+            },
+            { 
+                id: 3, week: 2, title: "Internal Marketing Remediation", hours: 20, deliverable: "Digital101 Footprint Fix", status: 'pending',
+                details: "Fixing internal brand decay: meta-tags, blog feeds, and landing page silos.",
+                steps: ["Kill broken legacy feeds", "Audit Meta-tags", "Live Editorial Calendar"],
+                metrics: ["Zero Internal SEO Errors", "Active Brand Presence"]
+            },
+            { 
+                id: 4, week: 2, title: "Audit Panel Clients & Services", hours: 24, deliverable: "Client Health Dashboard", status: 'pending',
+                details: "Comprehensive audit to prevent junior-led errors on high-stakes retainers.",
+                steps: ["Contract vs Deliverable Audit", "Bottleneck ID", "Risk Mitigation Framework"],
+                metrics: ["Live Client Dashboard", "Zero Account Instability"]
+            },
+            { 
+                id: 5, week: 3, title: "Establish Stratified QA Baselines", hours: 20, deliverable: "QA Standard", status: 'pending',
+                details: "Creating rigid checklists to separate Enterprise vs SME output grades.",
+                steps: ["Draft Grade A vs B QA", "Implement Checklist-gate", "Review junior execution"],
+                metrics: ["100% QA Adherence", "Zero Major Deployment Errors"]
+            },
+            { 
+                id: 6, week: 3, title: "SWOT & Competitor Analysis", hours: 20, deliverable: "Market Intelligence Report", status: 'pending',
+                details: "Data-driven pricing and service adjustment strategy.",
+                steps: ["SL Agency Pricing Benchmark", "Competitor UVP Audit", "High-Margin Gap ID"],
+                metrics: ["Pricing Framework V1", "Market Position Map"]
+            },
+            { 
+                id: 7, week: 4, title: "Brand Positioning & Re-charging", hours: 16, deliverable: "Brand Guideline Update", status: 'pending',
+                details: "Weaponizing 'SCREAM without SHOUTING' UVP for sales assets.",
+                steps: ["UVP Refinement", "Sales Deck Update", "Pod Messaging Sync"],
+                metrics: ["Live Sales Assets", "Brand Tone Consistency"]
+            },
+            { 
+                id: 8, week: 4, title: "Site Architecture Wireframing", hours: 24, deliverable: "UX Transformation", status: 'pending',
+                details: "UX wireframes for specialized service landing pages.",
+                steps: ["Audit current UX bottlenecks", "Map 5 service silos", "Define lead-capture routing"],
+                metrics: ["Approved Wireframe Set", "Conversion Flow Map"]
+            },
+            { 
+                id: 9, week: 5, title: "Portfolio & Case Studies Visibility", hours: 24, deliverable: "Data-Backed Proof", status: 'pending',
+                details: "Developing mathematical proof of value for top accounts.",
+                steps: ["Extract Silvans/P&S metrics", "Draft ROI proofs", "Integrate to Funnels"],
+                metrics: ["2 High-Impact Case Studies", "Proof-of-Value Verification"]
+            },
+            { 
+                id: 10, week: 5, title: "Develop SOP & Workflow Hierarchy", hours: 32, deliverable: "Operational Blueprint (V1)", status: 'pending',
+                details: "Defining agentic workflows for autonomous junior execution.",
+                steps: ["Map Agentic Workflows", "Document SOP Library", "BPF Hierarchy Setup"],
+                metrics: ["Blueprint V1 Documentation", "Reduced Director Oversight"]
+            },
+            { 
+                id: 11, week: 6, title: "Department Duplication Checks", hours: 12, deliverable: "Efficiency Audit", status: 'pending',
+                details: "Eliminating redundancy across the 5 pods.",
+                steps: ["Task Overlap Audit", "Tool Consolidation", "Streamline Comms"],
+                metrics: ["Final Efficiency Report", "Wasted Time Salvage"]
+            },
+            { 
+                id: 12, week: 6, title: "Cash Flow Management Review", hours: 12, deliverable: "Marketing Budget Allocation", status: 'pending',
+                details: "Spending strategy tied to revenue and high-ticket B2B traffic.",
+                steps: ["Audit Ad-spend Efficiency", "Budget Performance Triggers", "ROI Strategy"],
+                metrics: ["Approved Budget Framework", "Maximized ROI Plan"]
+            },
+            { 
+                id: 13, week: 7, title: "Lead Capture Mechanisms", hours: 20, deliverable: "Frictionless Lead Magnet", status: 'pending',
+                details: "Deploying lead magnets to feed the CRM with B2B traffic.",
+                steps: ["Design 2026 Audit Asset", "CRM Lead Flow Setup", "Auto-responder Integration"],
+                metrics: ["Live Lead Magnet", "Active CRM Capture"]
+            },
+            { 
+                id: 14, week: 7, title: "New Lead Gen & Network Plan", hours: 28, deliverable: "90-Day Marketing Strategy", status: 'pending',
+                details: "Establishing the long-term sales and networking calendar.",
+                steps: ["B2B Campaign Calendar", "Networking Event Schedule", "Outbound Sequence"],
+                metrics: ["Approved 90-Day Plan", "Live Growth Calendar"]
+            },
+            { 
+                id: 15, week: 8, title: "Client Journey Map & Canvass Plan", hours: 16, deliverable: "Retention & Upsell Sequence", status: 'pending',
+                details: "Maximizing LTV via mapped onboarding and upsells.",
+                steps: ["Map Onboarding touchpoints", "Upsell Trigger Protocol", "Retention Workflow"],
+                metrics: ["Complete Journey Map", "Upsell Framework"]
+            },
+            { 
+                id: 16, week: 8, title: "KPI Setting & Guiding Pillars", hours: 16, deliverable: "Performance Dashboard", status: 'pending',
+                details: "Objective tracking systems for the 10-junior pod structure.",
+                steps: ["Set individual Pod KPIs", "Dashboard Config", "Weekly Ritual Design"],
+                metrics: ["Live KPI Dashboard", "Management Autonomy"]
+            },
+        ];
+
+        const DEPARTMENTS = [
+            { name: "Marketing", type: "department", icon: "target", priority: "High", focus: "Restructuring juniors into 5 pods.", details: "Strategic and tactical management of the 10 generalists." },
+            { name: "Director Support", type: "department", icon: "shield-check", priority: "High", focus: "Operational architecture relief.", details: "Architecting HR, IT, and Finance systems for growth." },
+            { name: "Business Dev", type: "department", icon: "trending-up", priority: "Medium", focus: "High-ticket lead generation.", details: "B2B sales and outbound asset development." },
+            { name: "HR & Planning", type: "department", icon: "users", priority: "Medium", focus: "Junior upskilling and KPI systems.", details: "12-week internal academy deployment." },
+            { name: "IT & Security", type: "department", icon: "briefcase", priority: "Low", focus: "Digital remediation.", details: "Fixing blog feeds and meta-tags." },
+            { name: "Finance", type: "department", icon: "dollar-sign", priority: "High", focus: "Optimizing HR expenses via Agentic AI.", details: "Leveraging autonomous Agentic AI workflows to minimize HR fixed costs, replacing high-overhead management friction." },
+        ];
+
+        const NBOS = [
+            { id: 'n1', type: "nbo", title: "Print to Frame (P2F)", description: "Fabrication of steel frames for prints.", link: "P2F.com" },
+            { id: 'n2', type: "nbo", title: "AU Shop Drawings", description: "B2B Steel drawings (0% GST).", link: "B2B Export" },
+            { id: 'n3', type: "nbo", title: "Design Bundle for Builders", description: "Passive income portal for Builders.", link: "SaaS Model" },
+            { id: 'n4', type: "nbo", title: "e-Learning Platform", description: "Corporate certificate courses.", link: "LMS" },
+            { id: 'n5', type: "nbo", title: "Steel Fab & Construction", description: "Execution via existing warehouse.", link: "Joint Venture" },
+            { id: 'n6', type: "nbo", title: "AU Drafting Company", description: "Direct AU builder connections.", link: "Outsourcing" },
+        ];
+
+        const COMPENSATION = [
+            { 
+                model: "Unified Strategic Salary", 
+                value: "LKR 550k + 50k Fuel", 
+                active: true, 
+                desc: "Lead + Operations Architect.",
+                details: "A high-efficiency model combining two senior roles into one central Operational Lead. This eliminates the need for separate Marketing and Operations hires, saving the company significant overhead.",
+                steps: ["Assume full Marketing Pod leadership", "Architect internal HR/IT/Finance systems", "Deploy Agentic Workflows across departments"],
+                metrics: ["Zero management overlap", "Systemic cost reduction", "Unified chain of command"]
+            },
+            { 
+                model: "Base + Milestone Bonus", 
+                value: "LKR 350k → 600k", 
+                active: false, 
+                desc: "Linked escalations.",
+                details: "A proof-of-value escalation model where salary steps are triggered by the successful deployment of Phase 1 and Phase 2 systems. Lowers initial risk for the company while rewarding results.",
+                steps: ["Start at base entry", "Trigger Step 1 upon 160h audit success", "Trigger Step 2 upon full SOP rollout"],
+                metrics: ["Performance-linked ROI", "Risk-mitigated engagement", "Goal-oriented scaling"]
+            },
+        ];
+
+        // --- COMPONENTS ---
+
+        const Icon = ({ name, size = 18, className = "" }) => {
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const DetailOverlay = ({ item, onClose, onToggle }) => {
+            if (!item) return null;
+            const isTask = !!item.week;
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
+                    <div className="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-[2rem] shadow-2xl border border-slate-200 flex flex-col">
+                        {item.status === 'completed' && (
+                            <div className="bg-emerald-600 text-white px-8 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-center flex items-center justify-center gap-2">
+                                <Icon name="award" size={12} /> Milestone Verified
+                            </div>
+                        )}
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-start">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${item.status === 'completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
+                                        {isTask ? `Week ${item.week} / Seq ${item.id}` : (item.type || 'Compensation')}
+                                    </span>
+                                </div>
+                                <h2 className={`text-2xl font-black tracking-tight leading-none ${item.status === 'completed' ? 'text-emerald-900' : 'text-slate-900'}`}>{item.title || item.name || item.model}</h2>
+                            </div>
+                            <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-full transition-colors"><Icon name="x" size={20} className="text-slate-400" /></button>
+                        </div>
+                        <div className="p-8 overflow-y-auto custom-scrollbar space-y-6">
+                            <p className="text-slate-700 leading-relaxed text-base font-medium">"{item.details || item.longDetails || item.focus || item.description}"</p>
+                            
+                            {item.steps && (
+                                <div>
+                                    <h4 className="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-3 italic flex items-center gap-2">
+                                        <Icon name="list" size={12} className="text-blue-500" /> Strategic Steps
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {item.steps.map((step, i) => (
+                                            <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex gap-3">
+                                                <span className="text-blue-500 font-black text-xs">0{i+1}</span>
+                                                <p className="text-slate-700 text-xs font-bold">{step}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {isTask && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 italic">Allocation</p>
+                                        <p className="text-xl font-black text-slate-900">{item.hours}h</p>
+                                    </div>
+                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 italic">Deliverable</p>
+                                        <p className="text-xs font-black text-blue-600 leading-tight uppercase italic">{item.deliverable}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {isTask && (
+                                <button 
+                                    onClick={() => { onToggle(item.id); onClose(); }}
+                                    className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg ${item.status === 'completed' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white hover:bg-blue-600'}`}
+                                >
+                                    {item.status === 'completed' ? 'Re-open Action' : 'Confirm Victory'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const StatCard = ({ icon, label, value, sub, color }) => (
+            <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-500">
+                <div className="flex items-center gap-3 mb-3 md:mb-4">
+                    <div className="bg-slate-50 p-2 rounded-lg md:rounded-xl"><Icon name={icon} className={color} size={18} /></div>
+                    <span className="text-[9px] md:text-[10px] font-black text-slate-700 uppercase tracking-[0.2em] italic font-bold">{label}</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter mb-1">{value}</p>
+                <p className="text-[9px] md:text-[10px] font-black text-slate-700 uppercase tracking-widest italic font-bold">{sub}</p>
+            </div>
+        );
+
+        // --- MAIN APP ---
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [tasks, setTasks] = useState(INITIAL_TASKS);
+            const [selectedDetail, setSelectedDetail] = useState(null);
+            const [notification, setNotification] = useState(null);
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+            const stats = useMemo(() => {
+                const totalHours = tasks.reduce((sum, t) => sum + t.hours, 0);
+                const completedHours = tasks.filter(t => t.status === 'completed').reduce((sum, t) => sum + t.hours, 0);
+                return {
+                    progress: Math.round((completedHours / totalHours) * 100),
+                    completedHours,
+                    totalHours,
+                    phase: (completedHours / totalHours) >= 0.5 ? "PHASE 2: INTEGRATION" : "PHASE 1: PROOF OF VALUE",
+                    pendingTasks: tasks.filter(t => t.status === 'pending').length,
+                    totalTasks: tasks.length
+                };
+            }, [tasks]);
+
+            useEffect(() => {
+                if (notification) {
+                    const timer = setTimeout(() => setNotification(null), 3500);
+                    return () => clearTimeout(timer);
+                }
+            }, [notification]);
+
+            const toggleTask = (id, e) => {
+                if(e) e.stopPropagation();
+                setTasks(prev => prev.map(t => {
+                    if (t.id === id) {
+                        const isDone = t.status === 'pending';
+                        if (isDone) setNotification(`Success: ${t.title}`);
+                        return { ...t, status: isDone ? 'completed' : 'pending' };
+                    }
+                    return t;
+                }));
+            };
+
+            const dashboardActionLog = useMemo(() => {
+                return [...tasks].sort((a, b) => {
+                    if (a.status === 'pending' && b.status === 'completed') return -1;
+                    if (a.status === 'completed' && b.status === 'pending') return 1;
+                    return 0;
+                }).slice(0, 16); 
+            }, [tasks]);
+
+            const NavItems = () => (
+                <nav className="flex-1 space-y-1 text-slate-400">
+                    {['dashboard', 'timeline', 'matrix', 'pitch', 'nbo'].map(tab => (
+                        <button 
+                            key={tab} 
+                            onClick={() => { setActiveTab(tab); setMobileMenuOpen(false); }} 
+                            className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-all font-bold text-xs capitalize ${activeTab === tab ? 'bg-blue-600 shadow-xl text-white' : 'hover:text-white hover:bg-slate-800'}`}
+                        >
+                            <Icon name={tab === 'dashboard' ? 'layout-dashboard' : tab === 'timeline' ? 'calendar' : tab === 'matrix' ? 'building-2' : tab === 'pitch' ? 'target' : 'briefcase'} size={14} />
+                            {tab === 'nbo' ? 'NBO Vault' : tab}
+                        </button>
+                    ))}
+                </nav>
+            );
+
+            return (
+                <div className="flex min-h-screen">
+                    <DetailOverlay item={selectedDetail} onClose={() => setSelectedDetail(null)} onToggle={toggleTask} />
+
+                    {/* Mobile Drawer Overlay */}
+                    {mobileMenuOpen && (
+                        <div 
+                            className="fixed inset-0 z-[60] drawer-overlay md:hidden" 
+                            onClick={() => setMobileMenuOpen(false)}
+                        ></div>
+                    )}
+
+                    {/* Sidebar / Mobile Drawer */}
+                    <aside className={`
+                        w-64 bg-slate-900 fixed h-full p-5 flex flex-col text-white z-[70] shadow-2xl transition-transform duration-300
+                        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+                    `}>
+                        <div className="flex items-center justify-between md:justify-start gap-2 px-1 mb-8">
+                            <div className="flex items-center gap-2">
+                                <div className="bg-blue-600 p-1.5 rounded-lg"><Icon name="zap" size={16} className="text-white fill-white" /></div>
+                                <h1 className="font-black text-lg italic tracking-tighter uppercase">Digital101 Ops</h1>
+                            </div>
+                            <button onClick={() => setMobileMenuOpen(false)} className="md:hidden p-1">
+                                <Icon name="x" size={20} />
+                            </button>
+                        </div>
+                        
+                        <NavItems />
+                        
+                        <div className="mt-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                            <div className="flex justify-between text-[9px] font-black text-slate-300 mb-2 uppercase tracking-[0.2em]"><span>Status</span><span>{stats.progress}%</span></div>
+                            <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden"><div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${stats.progress}%` }}></div></div>
+                            <p className="text-[9px] font-bold text-slate-400 mt-2 text-center uppercase tracking-tighter italic">{stats.completedHours}h / {stats.totalHours}h Logged</p>
+                        </div>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 md:ml-64 p-4 md:p-8 lg:p-10 transition-all">
+                        <header className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8 md:mb-10">
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                                <button 
+                                    onClick={() => setMobileMenuOpen(true)}
+                                    className="md:hidden p-2 bg-white border border-slate-200 rounded-lg text-slate-900 shadow-sm"
+                                >
+                                    <Icon name="menu" size={20} />
+                                </button>
+                                <div>
+                                    <h2 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] mb-1 italic">Strategic Command</h2>
+                                    <h3 className="text-2xl md:text-3xl font-black text-slate-900 capitalize tracking-tighter">{activeTab}</h3>
+                                </div>
+                            </div>
+                            <div className="w-full md:w-auto bg-white border border-slate-200 px-4 py-2.5 rounded-xl md:rounded-2xl shadow-sm text-[10px] font-black text-slate-800 uppercase flex items-center justify-center md:justify-start gap-3 tracking-widest border-2">
+                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>{stats.phase}
+                            </div>
+                        </header>
+
+                        {/* --- DASHBOARD VIEW --- */}
+                        {activeTab === 'dashboard' && (
+                            <div className="space-y-6 md:space-y-8 animate-in">
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                                    <StatCard icon="clock" label="Strategy Logged" value={`${stats.completedHours}h`} sub="Sprint Velocity" color="text-blue-600" />
+                                    <StatCard icon="award" label="Milestones" value={stats.totalTasks - stats.pendingTasks} sub="Proven Value" color="text-emerald-600" />
+                                    <StatCard icon="zap" label="Execution" value={`${stats.progress}%`} sub="Flow Rate" color="text-amber-500" />
+                                    <StatCard icon="calendar-days" label="Duration" value="60 Days" sub="8-Week Sync" color="text-slate-800" />
+                                </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm relative overflow-hidden">
+                                        <h4 className="text-lg md:text-xl font-black mb-4 md:mb-6 flex items-center justify-between text-slate-900">
+                                            <span className="flex items-center gap-2"><Icon name="list" size={18} className="text-blue-600" /> Executive Action Log</span>
+                                            <span className="hidden sm:inline text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Sorted by Momentum</span>
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {dashboardActionLog.map(task => (
+                                                <div key={task.id} onClick={() => setSelectedDetail(task)} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl border transition-all cursor-pointer gap-3 group ${task.status === 'completed' ? 'completed-sticky border-emerald-300' : 'bg-slate-50 border-slate-100 hover:border-blue-400'}`}>
+                                                    <div className="flex items-center gap-4">
+                                                        {task.status === 'completed' ? <Icon name="award" className="text-emerald-600" size={18} /> : <span className="text-xs font-black text-slate-600 italic">#{task.id}</span>}
+                                                        <div>
+                                                            <p className={`text-sm font-black transition-all ${task.status === 'completed' ? 'text-emerald-900' : 'text-slate-900'}`}>{task.title}</p>
+                                                            <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-0.5 italic leading-tight">Deliverable: {task.deliverable}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={(e) => toggleTask(task.id, e)} className={`w-full sm:w-auto px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm transition-all ${task.status === 'completed' ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-800 hover:bg-slate-900 hover:text-white'}`}>
+                                                        {task.status === 'completed' ? 'Win' : 'Verify'}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-900 rounded-2xl md:rounded-3xl p-6 md:p-8 text-white flex flex-col justify-center relative overflow-hidden group shadow-xl">
+                                        <div className="relative z-10">
+                                            <h4 className="text-xl md:text-2xl font-black italic tracking-tighter mb-4 text-blue-400 leading-tight">The 101 Philosophy</h4>
+                                            <p className="text-slate-300 text-xs md:text-sm font-medium italic leading-relaxed mb-4 font-bold">"Scream without Shouting: Fusing human expertise with agentic workflows."</p>
+                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-500 tracking-[0.2em] font-bold">
+                                                <Icon name="target" size={10} /> 320h PROOF OF VALUE
+                                            </div>
+                                        </div>
+                                        <Icon name="zap" size={180} className="absolute -bottom-10 -right-10 opacity-5" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- TIMELINE VIEW --- */}
+                        {activeTab === 'timeline' && (
+                            <div className="grid grid-cols-1 gap-6 md:gap-10 animate-in">
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map(w => (
+                                    <div key={w} className="space-y-4">
+                                        <h4 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-3">
+                                            <span className="bg-blue-600 text-white w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center italic shadow-lg text-xs md:text-sm">W{w}</span>
+                                            Week {w}: {w <= 2 ? 'Audit & Foundation' : w <= 4 ? 'QA & UX' : w <= 6 ? 'SOP Rollout' : 'Growth Engines'}
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                            {tasks.filter(t => t.week === w).map(task => (
+                                                <div key={task.id} onClick={() => setSelectedDetail(task)} className={`p-4 md:p-5 rounded-xl md:rounded-2xl border-2 transition-all cursor-pointer group hover:shadow-lg ${task.status === 'completed' ? 'bg-emerald-50 border-emerald-500' : 'bg-white border-slate-100 hover:border-blue-500'}`}>
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="space-y-1 text-slate-900">
+                                                            <p className={`text-xs md:text-sm font-black leading-tight tracking-tight ${task.status === 'completed' ? 'text-emerald-900' : 'text-slate-900'}`}>{task.title}</p>
+                                                            <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${task.status === 'completed' ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>Seq #{task.id} • {task.hours}h</span>
+                                                        </div>
+                                                        <div onClick={(e) => toggleTask(task.id, e)} className={`flex-shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full border flex items-center justify-center transition-all ${task.status === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'border-slate-200 bg-white'}`}>
+                                                            {task.status === 'completed' ? <Icon name="award" size={14} /> : <Icon name="check" size={14} className="text-slate-400" />}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* --- MATRIX VIEW --- */}
+                        {activeTab === 'matrix' && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 animate-in">
+                                {DEPARTMENTS.map(dept => (
+                                    <div key={dept.name} onClick={() => setSelectedDetail(dept)} className="bg-white border border-slate-200 p-5 md:p-6 rounded-2xl md:rounded-3xl shadow-sm hover:border-blue-500 hover:shadow-xl transition-all cursor-pointer group">
+                                        <div className="bg-slate-50 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
+                                            <Icon name={dept.icon} size={20} className="text-blue-600 group-hover:text-white transition-colors md:size-24" />
+                                        </div>
+                                        <h4 className="text-base md:text-lg font-black mb-2 tracking-tighter text-slate-900">{dept.name}</h4>
+                                        <p className="text-slate-700 text-[10px] md:text-[11px] leading-relaxed font-medium italic mb-4 md:mb-6">"{dept.focus}"</p>
+                                        <div className="pt-4 border-t border-slate-100 flex justify-between items-center"><span className="text-[8px] md:text-[9px] font-black uppercase text-red-600 tracking-widest">{dept.priority} Priority</span><Icon name="arrow-right" size={14} className="text-slate-500" /></div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* --- PITCH VIEW --- */}
+                        {activeTab === 'pitch' && (
+                            <div className="max-w-4xl space-y-6 md:space-y-8 animate-in">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+                                    {COMPENSATION.map((c, i) => (
+                                        <div 
+                                            key={i} 
+                                            onClick={() => setSelectedDetail({...c, type: 'Negotiation Model'})}
+                                            className={`p-5 md:p-6 rounded-2xl md:rounded-3xl border-2 transition-all relative overflow-hidden cursor-pointer group hover:border-blue-400 ${c.active ? 'bg-blue-600 text-white border-blue-600 shadow-xl' : 'bg-white border-slate-100'}`}
+                                        >
+                                            <div className="flex justify-between items-start mb-2 md:mb-3">
+                                                <h4 className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest italic ${c.active ? 'text-blue-200' : 'text-slate-600'}`}>{c.model}</h4>
+                                                <Icon name="info" size={14} className={c.active ? "text-blue-200" : "text-slate-400"} />
+                                            </div>
+                                            <p className="text-xl md:text-2xl font-black tracking-tighter mb-2">{c.value}</p>
+                                            <p className={`text-[9px] md:text-[10px] font-bold leading-tight uppercase tracking-wider ${c.active ? 'opacity-80' : 'text-slate-700'}`}>{c.desc}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 text-white relative overflow-hidden shadow-xl">
+                                    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
+                                        <div className="space-y-4 md:space-y-6">
+                                            <h4 className="text-xl md:text-2xl font-black italic text-blue-400 tracking-tighter">Logistical Realities</h4>
+                                            <p className="text-slate-300 text-xs md:text-sm leading-relaxed italic font-bold">"Spreading the strategy over 8 weeks ensures 100% sprint availability with zero management friction."</p>
+                                            <div className="grid grid-cols-2 gap-3 md:gap-4">
+                                                <div className="bg-white/5 p-3 md:p-4 rounded-xl md:rounded-2xl border border-white/10 text-center"><p className="text-2xl md:text-3xl font-black text-white">144h</p><p className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1 italic font-bold leading-tight">Salvaged / Mo</p></div>
+                                                <div className="bg-white/5 p-3 md:p-4 rounded-xl md:rounded-2xl border border-white/10 text-center"><p className="text-2xl md:text-3xl font-black text-white">320h</p><p className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1 italic font-bold leading-tight">Sprint Capacity</p></div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-blue-600 p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-xl space-y-3 md:space-y-4">
+                                            <h5 className="text-[9px] md:text-[10px] font-black uppercase text-blue-100 italic tracking-[0.2em] font-bold">Execution Guarantees</h5>
+                                            {['8-Week Roadmap', 'Extended Proof-of-Value', 'De-risked Assets'].map(item => (
+                                                <div key={item} className="flex items-center gap-3 p-2 md:p-2.5 bg-blue-500/50 rounded-lg md:rounded-xl border border-blue-400/30">
+                                                    <Icon name="check-circle" size={14} className="text-white fill-white" />
+                                                    <span className="text-[10px] md:text-xs font-black italic tracking-tight">{item}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- NBO VIEW --- */}
+                        {activeTab === 'nbo' && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 animate-in">
+                                {NBOS.map(n => (
+                                    <div key={n.id} onClick={() => setSelectedDetail(n)} className="bg-white border border-slate-200 p-5 md:p-6 rounded-2xl md:rounded-3xl hover:border-blue-400 transition-all group cursor-pointer overflow-hidden shadow-sm">
+                                        <div className="flex justify-between items-start mb-3 md:mb-4">
+                                            <h4 className="text-sm md:text-base font-black group-hover:text-blue-600 transition-colors tracking-tight text-slate-900">{n.title}</h4>
+                                            <span className="text-[8px] md:text-[9px] font-black italic bg-blue-50 text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-widest">Vault</span>
+                                        </div>
+                                        <p className="text-[10px] md:text-xs text-slate-700 mb-4 md:mb-6 italic leading-relaxed font-medium">"{n.description}"</p>
+                                        <div className="pt-3 md:pt-4 border-t border-slate-50 flex items-center justify-between text-[9px] md:text-[10px] font-black text-blue-600 uppercase tracking-widest italic">
+                                            <span>{n.link}</span><Icon name="plus-circle" size={14} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* --- NOTIFICATION --- */}
+                        {notification && (
+                            <div className="fixed bottom-4 md:bottom-8 right-4 md:right-8 bg-slate-900 text-white min-w-[240px] md:min-w-[280px] rounded-xl md:rounded-2xl shadow-2xl flex flex-col animate-in border border-slate-700 z-[200] overflow-hidden">
+                                <div className="px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-emerald-500 p-1.5 rounded-full shadow-lg shadow-emerald-500/40"><Icon name="award" size={14} className="text-white" /></div>
+                                        <span className="font-black text-xs md:text-sm italic tracking-tight uppercase leading-none">{notification}</span>
+                                    </div>
+                                    <button onClick={() => setNotification(null)} className="text-slate-500 hover:text-white transition-colors">
+                                        <Icon name="x" size={14} />
+                                    </button>
+                                </div>
+                                <div className="h-1 bg-emerald-500/30 w-full relative">
+                                    <div className="absolute top-0 left-0 h-full bg-emerald-500 notification-timer"></div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
